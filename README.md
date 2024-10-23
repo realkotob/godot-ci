@@ -18,7 +18,16 @@ https://hub.docker.com/r/barichello/godot-ci/
 
 ### Mono/C#
 
-To build a godot project with Mono enabled, change the image tag from `barichello/godot-ci:VERSION` to `barichello/godot-ci:mono-VERSION` in `.gitlab-ci.yml` (Gitlab) or `godot-ci.yml` (Github). e.g. `barichello/godot-ci:mono-3.2.1`.
+To build a Godot project with Mono (C#) enabled, you must do two things for each job:
+1. Change the container's `image` tag from `barichello/godot-ci:VERSION` to `barichello/godot-ci:mono-VERSION` in `.gitlab-ci.yml` (Gitlab) or `godot-ci.yml` (Github). (e.g. `barichello/godot-ci:mono-3.2.1`).
+2. You will also need to change your "Setup" step's run commands (looks like `run: mv /root/.local ...`) from ending with `...${GODOT_VERSION}.stable` to ending with `...${GODOT_VERSION}.stable.mono`. You will need to do this for both directories in the command.
+```bash
+mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+```
+becomes:
+```bash
+mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable.mono ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable.mono
+```
 
 ### Android
 
@@ -39,7 +48,7 @@ See [this repository](https://github.com/2shady4u/godot-cpp-ci) for automating G
 
 ### Modules
 
-You have to compile Godot with the modules included first. See [this excellent repository](https://gitlab.com/Calinou/godot-builds-ci) by Calinou for automating Godot builds. 
+You have to compile Godot with the modules included first. See [this excellent repository](https://gitlab.com/Calinou/godot-builds-ci) by Calinou for automating Godot builds.
 
 After that, you would use the custom build to export your project as usual. See [this guide](https://gitlab.com/greenfox/godot-build-automation/-/blob/master/advanced_topics.md#using-a-custom-build-of-godot) by Greenfox on how to use a custom Godot build for automated exports.
 
@@ -89,11 +98,14 @@ Secrets needed for a Itch.io deploy via GitLab CI:
 ## Troubleshoot
 
 #### Problems while exporting
-- Check that the export names on `export_presets.cfg` match the ones used in your CI script.
-- Check the paths used in your CI script, some commands may be running in the wrong place if you are keeping the project in a folder (like the `test-project` template) or not.
+
+- **Check that the export presets file (`export_presets.cfg`) is committed to version control.** In other words, `export_presets.cfg` must *not* be in `.gitignore`.
+  - Make sure you don't accidentally commit Android release keystore or Windows codesigning credentials. These credentials cannot be revoked if they are leaked!
+- Check that the export names on `export_presets.cfg` match the ones used in your CI script **(case-sensitive)**. Export preset names that contain spaces must be written within quotes (single or double).
+- Check the paths used in your CI script. Some commands may be running in the wrong place if you are keeping the project in a folder (like the `test-project` template) or not.
 
 #### Authentication errors with Butler
-- If using GitLab check that the 'protected' tag is disabled in the [CI/CD variables panel](https://github.com/aBARICHELLO/godot-ci#environment-configuration).
+- If using GitLab, check that the 'protected' tag is disabled in the [CI/CD variables panel](https://github.com/aBARICHELLO/godot-ci#environment-configuration).
 
 ## Additional Resources
 
